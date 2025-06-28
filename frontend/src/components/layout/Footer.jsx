@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <p className="text-gray-600 text-sm">
-            © 2025 Obvious Plan. Created by Tianrui Zhu for HTTP-5310-0NA Capstone Project.
+            © 2025 Chillax Pack. Created by Cary Zhu
           </p>
         </div>
       </div>

@@ -26,7 +26,6 @@ class UserPlanHistory extends Model
         'completed_at' => 'datetime',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -37,7 +36,6 @@ class UserPlanHistory extends Model
         return $this->belongsTo(GeneratedSchedule::class);
     }
 
-    // Scopes
     public function scopeCompleted($query)
     {
         return $query->where('was_completed', true);

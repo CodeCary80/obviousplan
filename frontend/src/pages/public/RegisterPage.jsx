@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/common/button';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -22,8 +21,7 @@ const RegisterPage = () => {
       ...prev,
       [e.target.name]: e.target.value
     }));
-    
-    // Clear specific field error when user starts typing
+
     if (errors[e.target.name]) {
       setErrors(prev => ({
         ...prev,
@@ -105,7 +103,7 @@ const RegisterPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-block">
-              <h1 className="text-3xl font-bold text-white">Obvious Plan</h1>
+              <h1 className="text-3xl font-bold text-white">Chillax Pack</h1>
             </Link>
             <p className="text-purple-200 mt-2">Create your account</p>
           </div>
@@ -204,14 +202,20 @@ const RegisterPage = () => {
             )}
 
             {/* Submit Button */}
-            <Button
+            <button
               type="submit"
               disabled={loading || !isFormValid}
-              loading={loading}
-              className="w-full bg-white text-purple-900 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200"
+              className="w-full bg-white hover:bg-gray-100 font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-purple-900"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </Button>
+              {loading ? (
+                <span className="flex items-center justify-center text-purple-900">
+                  <div className="animate-spin h-4 w-4 border-2 border-purple-600 border-t-transparent rounded-full mr-2"></div>
+                  Creating account...
+                </span>
+              ) : (
+                <span className="text-purple-900">Create Account</span>
+              )}
+            </button>
           </form>
 
           {/* Footer */}

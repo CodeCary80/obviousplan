@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('tips', function (Blueprint $table) {
             $table->id();
             $table->text('tip_text');
-            $table->string('applies_to_activity_type')->nullable(); // e.g., "Movie", "Bowling"
+            $table->string('applies_to_activity_type')->nullable(); 
             $table->enum('applies_to_budget_tag', ['$', '$$', '$$$', '$$$$', '$$$$$'])->nullable();
             $table->enum('applies_to_energy_tag', ['Low', 'Medium', 'High'])->nullable();
             $table->boolean('is_generic')->default(false);

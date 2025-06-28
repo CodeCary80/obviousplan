@@ -14,7 +14,6 @@ const FeedbackPage = () => {
     e.preventDefault();
     
     if (isAuthenticated && rating > 0) {
-      // Here you would submit to API
       console.log('Submitting feedback:', { rating, comment });
       setSubmitted(true);
     }

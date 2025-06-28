@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('activity_id')->constrained()->onDelete('cascade');
             $table->foreignId('tip_id')->constrained()->onDelete('cascade');
             $table->decimal('total_estimated_budget', 8, 2)->nullable();
-            $table->string('schedule_hash')->unique(); // For sharing/referencing
+            $table->string('schedule_hash')->unique(); 
             $table->boolean('was_viewed')->default(false);
             $table->boolean('was_confirmed')->default(false);
             $table->timestamps();

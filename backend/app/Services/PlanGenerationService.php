@@ -47,28 +47,47 @@ class PlanGenerationService
             ->byBudget($planRequest->budget_preference)
             ->byEnergy($planRequest->energy_level)
             ->byPeople($planRequest->company_type);
-
-        // If location is provided, prioritize by proximity
+    
+        // If location is provided, prioritize nearby restaurants
         if ($planRequest->hasLocation()) {
-            $restaurants = $this->filterByProximity(
-                $query->get(),
+            \Log::info('Location-based restaurant search', [
+                'user_lat' => $planRequest->user_latitude,
+                'user_lng' => $planRequest->user_longitude
+            ]);
+    
+            // First try: Get restaurants within 15km
+            $nearbyRestaurants = $this->filterByProximity(
+                $query->whereNotNull('latitude')->whereNotNull('longitude')->get(),
                 $planRequest->user_latitude,
                 $planRequest->user_longitude,
-                10 // 10km radius
+                15
             );
-            
-            if ($restaurants->isNotEmpty()) {
-                return $restaurants->random();
+    
+            if ($nearbyRestaurants->isNotEmpty()) {
+                $topChoices = $nearbyRestaurants->take(3); // Top 3 closest
+                return $topChoices->random();
+            }
+    
+            // Second try: Expand to 30km
+            $expandedSearch = $this->filterByProximity(
+                $query->whereNotNull('latitude')->whereNotNull('longitude')->get(),
+                $planRequest->user_latitude,
+                $planRequest->user_longitude,
+                30
+            );
+    
+            if ($expandedSearch->isNotEmpty()) {
+                return $expandedSearch->random();
             }
         }
-
+    
         // Fallback to any matching restaurant
         $restaurant = $query->inRandomOrder()->first();
         
         if (!$restaurant) {
             throw new \Exception('No suitable restaurant found matching your preferences');
         }
-
+    
         return $restaurant;
     }
 
@@ -108,28 +127,47 @@ class PlanGenerationService
             ->byBudget($planRequest->budget_preference)
             ->byEnergy($planRequest->energy_level)
             ->byPeople($planRequest->company_type);
-
-        // For location-based requests, prefer activities with locations
+    
+        // If location is provided, prioritize nearby activities
         if ($planRequest->hasLocation()) {
-            $activitiesWithLocation = $this->filterByProximity(
+            \Log::info('Location-based activity search', [
+                'user_lat' => $planRequest->user_latitude,
+                'user_lng' => $planRequest->user_longitude
+            ]);
+    
+            // First try: Get activities within 20km
+            $nearbyActivities = $this->filterByProximity(
                 $query->whereNotNull('latitude')->whereNotNull('longitude')->get(),
                 $planRequest->user_latitude,
                 $planRequest->user_longitude,
-                15 // Larger radius for activities
+                20
             );
-            
-            if ($activitiesWithLocation->isNotEmpty()) {
-                return $activitiesWithLocation->random();
+    
+            if ($nearbyActivities->isNotEmpty()) {
+                $topChoices = $nearbyActivities->take(3); // Top 3 closest
+                return $topChoices->random();
+            }
+    
+            // Second try: Expand to 40km
+            $expandedSearch = $this->filterByProximity(
+                $query->whereNotNull('latitude')->whereNotNull('longitude')->get(),
+                $planRequest->user_latitude,
+                $planRequest->user_longitude,
+                40
+            );
+    
+            if ($expandedSearch->isNotEmpty()) {
+                return $expandedSearch->random();
             }
         }
-
+    
         // Fallback to any matching activity
         $activity = $query->inRandomOrder()->first();
         
         if (!$activity) {
             throw new \Exception('No suitable activity found matching your preferences');
         }
-
+    
         return $activity;
     }
 
@@ -190,27 +228,63 @@ class PlanGenerationService
     }
 
     /**
-     * Calculate total estimated budget
+     * Calculate total estimated budget - FIXED VERSION
      */
     protected function calculateTotalBudget(Restaurant $restaurant, Activity $activity): float
     {
-        $restaurantBudget = $this->budgetTagToMidpoint($restaurant->budget_tag);
-        $activityBudget = $this->budgetTagToMidpoint($activity->budget_tag);
+        $restaurantBudget = $this->parseBudgetFromDisplayText($restaurant->budget_display_text);
+        $activityBudget = $this->parseBudgetFromDisplayText($activity->budget_display_text);
         
         return $restaurantBudget + $activityBudget;
     }
 
     /**
-     * Convert budget tag to estimated midpoint value
+     * Parse budget from display text (e.g., "$150-250" -> 200)
+     * This is more accurate than using generic budget tag midpoints
+     */
+    protected function parseBudgetFromDisplayText(string $budgetDisplayText): float
+    {
+       
+        $text = strtolower($budgetDisplayText);
+        
+      
+        if (strpos($text, 'free') !== false) {
+            return 0;
+        }
+        
+        // Extract all numbers from the string
+        preg_match_all('/[\d,]+/', $text, $matches);
+        
+        if (empty($matches[0])) {
+            return $this->budgetTagToMidpoint('$$'); 
+        }
+        
+        $numbers = array_map(function($num) {
+            return (float) str_replace(',', '', $num);
+        }, $matches[0]);
+        
+        if (count($numbers) >= 2) {
+            return ($numbers[0] + $numbers[1]) / 2;
+        } elseif (count($numbers) == 1) {
+            return $numbers[0];
+        }
+        
+        // Final fallback
+        return 50;
+    }
+
+    /**
+     * Convert budget tag to estimated midpoint value (UPDATED VALUES)
+     * This is now a fallback when display text parsing fails
      */
     protected function budgetTagToMidpoint(string $budgetTag): float
     {
         return match($budgetTag) {
-            '$' => 15,      // $10-20
-            '$$' => 35,     // $25-45
-            '$$$' => 60,    // $45-75
-            '$$$$' => 100,  // $75-125
-            '$$$$$' => 150, // $125-175+
+            '$' => 15,        // $0-30
+            '$$' => 45,       // $30-60  
+            '$$$' => 85,      // $60-110
+            '$$$$' => 150,    // $110-200
+            '$$$$$' => 400,   // $200+
             default => 50,
         };
     }
@@ -224,23 +298,24 @@ class PlanGenerationService
             if (!$location->hasLocation()) {
                 return false;
             }
-
+    
             $distance = $this->calculateDistance(
                 $userLat, 
                 $userLng, 
                 $location->latitude, 
                 $location->longitude
             );
-
+    
             return $distance <= $radiusKm;
-        })->sortBy(function ($location) use ($userLat, $userLng) {
-            return $this->calculateDistance(
+        })->map(function ($location) use ($userLat, $userLng) {
+            $location->distance = $this->calculateDistance(
                 $userLat, 
                 $userLng, 
                 $location->latitude, 
                 $location->longitude
             );
-        });
+            return $location;
+        })->sortBy('distance'); 
     }
 
     /**
@@ -248,7 +323,7 @@ class PlanGenerationService
      */
     protected function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): float
     {
-        $earthRadius = 6371; // Earth's radius in kilometers
+        $earthRadius = 6371; 
 
         $dLat = deg2rad($lat2 - $lat1);
         $dLng = deg2rad($lng2 - $lng1);

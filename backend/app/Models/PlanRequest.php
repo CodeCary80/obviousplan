@@ -26,7 +26,6 @@ class PlanRequest extends Model
         'location_shared' => 'boolean',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -37,7 +36,6 @@ class PlanRequest extends Model
         return $this->hasMany(GeneratedSchedule::class);
     }
 
-    // Helper methods
     public function hasLocation()
     {
         return $this->location_shared && 

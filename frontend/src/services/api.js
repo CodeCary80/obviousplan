@@ -39,12 +39,13 @@ api.interceptors.response.use(
 
 export default api;
 
-// Auth API functions
 export const authAPI = {
   register: (data) => api.post('/register', data),
   login: (data) => api.post('/login', data),
   logout: () => api.post('/logout'),
   me: () => api.get('/me'),
+
+  
 };
 
 // Evening Plan API functions
@@ -54,6 +55,11 @@ export const planAPI = {
   shuffleRestaurant: (hash) => api.post(`/evening-plans/${hash}/shuffle-restaurant`),
   shuffleActivity: (hash) => api.post(`/evening-plans/${hash}/shuffle-activity`),
   confirmSchedule: (hash) => api.post(`/evening-plans/${hash}/confirm`),
+
+  sendPasswordResetEmail: (email) => api.post('/password/email', { email }),
+  resetPassword: (data) => api.post('/password/reset', data),
+  validateResetToken: (email, token) => api.post('/password/validate-token', { email, token }),
+  
 };
 
 // User API functions

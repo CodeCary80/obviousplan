@@ -47,6 +47,10 @@ class GeneratedSchedule extends Model
     {
         return $this->belongsTo(Tip::class);
     }
+    public function userPlanHistories()
+    {
+        return $this->hasMany(UserPlanHistory::class);
+    }
 
     public function userPlanHistory()
     {

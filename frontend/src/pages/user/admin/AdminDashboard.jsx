@@ -6,7 +6,7 @@ const AdminDashboard = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600">Manage your Obvious Plan content</p>
+        <p className="text-gray-600">Manage your Chillax Pack content</p>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

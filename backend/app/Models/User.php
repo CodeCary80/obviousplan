@@ -28,7 +28,6 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // Relationships
     public function planRequests()
     {
         return $this->hasMany(PlanRequest::class);
@@ -44,7 +43,6 @@ class User extends Authenticatable
         return $this->hasMany(UserFavorite::class);
     }
 
-    // Helper methods
     public function isAdmin()
     {
         return $this->role === 'admin';
@@ -55,7 +53,6 @@ class User extends Authenticatable
         return $this->role === 'user';
     }
 
-    // Scopes
     public function scopeAdmins($query)
     {
         return $query->where('role', 'admin');

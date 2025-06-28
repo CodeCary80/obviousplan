@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('user_latitude', 10, 8)->nullable();
             $table->decimal('user_longitude', 11, 8)->nullable();
             $table->boolean('location_shared')->default(false);
-            $table->string('session_id')->nullable(); // For non-logged-in users
+            $table->string('session_id')->nullable(); 
             $table->timestamps();
         });
     }

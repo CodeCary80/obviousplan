@@ -15,7 +15,6 @@ class UserFavorite extends Model
         'user_notes'
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);

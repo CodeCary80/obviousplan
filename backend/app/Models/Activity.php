@@ -38,13 +38,11 @@ class Activity extends Model
         'is_active' => 'boolean',
     ];
 
-    // Relationships
     public function generatedSchedules()
     {
         return $this->hasMany(GeneratedSchedule::class);
     }
 
-    // Scopes
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -80,7 +78,6 @@ class Activity extends Model
         return $query->whereIn('indoor_outdoor_status', ['Outdoor', 'Both']);
     }
 
-    // Helper methods
     public function hasLocation()
     {
         return !is_null($this->latitude) && !is_null($this->longitude);

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->string('user_notes')->nullable();
             $table->timestamps();
             
-            // Ensure a user can't favorite the same schedule twice
             $table->unique(['user_id', 'generated_schedule_id']);
         });
     }

@@ -1,7 +1,9 @@
+// Fixed App.jsx - Remove forced login redirects and fix routing
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Public pages
 import HomePage from './pages/public/HomePage';
@@ -30,7 +32,7 @@ import PublicLayout from './components/layout/PublicLayout';
 import UserLayout from './components/layout/UserLayout';
 import AdminLayout from './components/layout/AdminLayout';
 
-// Protected route components
+// Protected route components - ONLY for user dashboard and admin
 function ProtectedRoute({ children, adminOnly = false }) {
   const { isAuthenticated, user, loading } = useAuth();
 
@@ -49,29 +51,11 @@ function ProtectedRoute({ children, adminOnly = false }) {
   return children;
 }
 
-function PublicRoute({ children }) {
-  const { isAuthenticated, user, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingSpinner message="Loading..." />;
-  }
-
-  // Redirect authenticated users to appropriate dashboard
-  if (isAuthenticated) {
-    if (user?.role === 'admin') {
-      return <Navigate to="/admin" replace />;
-    } else {
-      return <Navigate to="/dashboard" replace />;
-    }
-  }
-
-  return children;
-}
 
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public routes - ALWAYS accessible to everyone */}
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="results/:hash" element={<ResultsPage />} />
@@ -81,19 +65,11 @@ function AppRoutes() {
         <Route path="feedback/:hash" element={<FeedbackPage />} />
       </Route>
 
-      {/* Auth routes */}
-      <Route path="/login" element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      } />
-      <Route path="/register" element={
-        <PublicRoute>
-          <RegisterPage />
-        </PublicRoute>
-      } />
+      {/* Auth routes - standalone pages */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-      {/* User routes */}
+      {/* User routes - REQUIRES login */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <UserLayout />
@@ -104,7 +80,7 @@ function AppRoutes() {
         <Route path="history" element={<HistoryPage />} />
       </Route>
 
-      {/* Admin routes */}
+      {/* Admin routes - REQUIRES admin login */}
       <Route path="/admin" element={
         <ProtectedRoute adminOnly>
           <AdminLayout />
@@ -125,13 +101,15 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <AppRoutes />
-        </div>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+            <AppRoutes />
+          </div>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

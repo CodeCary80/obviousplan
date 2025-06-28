@@ -23,13 +23,11 @@ class Tip extends Model
         'is_active' => 'boolean',
     ];
 
-    // Relationships
     public function generatedSchedules()
     {
         return $this->hasMany(GeneratedSchedule::class);
     }
 
-    // Scopes
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
