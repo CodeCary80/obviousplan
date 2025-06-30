@@ -34,16 +34,28 @@ const ResultsPage = () => {
   };
 
   const handleShuffleRestaurant = async () => {
+    console.log('Current schedule object:', schedule);
+    console.log('Hash from schedule:', schedule?.hash);
+    
+    if (!schedule?.hash) {
+      console.error('No hash available in schedule');
+      alert('No schedule available to shuffle');
+      return;
+    }
+    
     setShuffling(prev => ({ ...prev, restaurant: true }));
     try {
-      const response = await planAPI.shuffleRestaurant(hash);
+      const response = await planAPI.shuffleRestaurant(schedule.hash);
+      console.log('Shuffle API response:', response);
+      
       if (response.data.success) {
         setSchedule(prev => ({
           ...prev,
           restaurant: response.data.data.restaurant
         }));
+        console.log('Restaurant updated successfully');
       } else {
-        alert('No alternative restaurant found');
+        alert(response.data.message || 'No alternative restaurant found');
       }
     } catch (error) {
       console.error('Shuffle failed:', error);
@@ -54,19 +66,30 @@ const ResultsPage = () => {
   };
 
   const handleShuffleActivity = async () => {
+    console.log('Shuffling activity with hash:', schedule?.hash);
+    
+    if (!schedule?.hash) {
+      console.error('No hash available for activity shuffle');
+      alert('No schedule available to shuffle');
+      return;
+    }
+    
     setShuffling(prev => ({ ...prev, activity: true }));
     try {
-      const response = await planAPI.shuffleActivity(hash);
+      const response = await planAPI.shuffleActivity(schedule.hash);
+      console.log('Activity shuffle API response:', response);
+      
       if (response.data.success) {
         setSchedule(prev => ({
           ...prev,
           activity: response.data.data.activity
         }));
+        console.log('Activity updated successfully');
       } else {
-        alert('No alternative activity found');
+        alert(response.data.message || 'No alternative activity found');
       }
     } catch (error) {
-      console.error('Shuffle failed:', error);
+      console.error('Activity shuffle failed:', error);
       alert('Failed to shuffle activity. Please try again.');
     } finally {
       setShuffling(prev => ({ ...prev, activity: false }));
